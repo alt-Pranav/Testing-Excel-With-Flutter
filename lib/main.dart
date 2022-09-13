@@ -113,12 +113,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
     /// stores file path to save at
     final String savePath = (await getApplicationSupportDirectory()).path;
+    final String docDir = (await getApplicationDocumentsDirectory()).path;
+
+    print(
+        savePath); // C:\Users\...\AppData\Roaming\com.example\excel_in_flutter
+    print(docDir); // C:\Users\...\OneDrive\Documents
 
     /// stores file path + file name
     final String filename = '$savePath/output.xlsx';
+    final String docFileName = '$docDir/output.xlsx';
 
     /// create the file here and write the bytes to it
-    final File file = File(filename);
+    File file = File(filename);
+    await file.writeAsBytes(bytesOfExcelWorkbook, flush: true);
+
+    file = File(docFileName);
     await file.writeAsBytes(bytesOfExcelWorkbook, flush: true);
 
     OpenFile.open(filename);
