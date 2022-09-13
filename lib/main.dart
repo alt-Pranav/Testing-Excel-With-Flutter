@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart';
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
 void main() {
   runApp(const MyApp());
@@ -53,6 +53,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  TextEditingController posn = TextEditingController();
+  TextEditingController data = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,9 +63,32 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text("Excel with Flutter"),
       ),
       body: Center(
-        child: ElevatedButton(
-          child: Text("Create Excel file"),
-          onPressed: createExcel,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                SizedBox(
+                  height: 30,
+                  width: 30,
+                  child: TextField(
+                    controller: posn,
+                  ),
+                ),
+                SizedBox(
+                  height: 30,
+                  width: 30,
+                  child: TextField(
+                    controller: data,
+                  ),
+                )
+              ],
+            ),
+            ElevatedButton(
+              child: Text("Create Excel file"),
+              onPressed: createExcel,
+            ),
+          ],
         ),
       ),
     );
@@ -70,13 +96,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> createExcel() async {
     /// creates an Excel Workbook with 1 worksheet
-    final Workbook workbook = Workbook();
+    final xlsio.Workbook workbook = xlsio.Workbook();
 
     /// access the worksheet of the workbook to store data in
     /// 0th index stores first worksheet
-    final Worksheet sheet = workbook.worksheets[0];
+    final xlsio.Worksheet sheet = workbook.worksheets[0];
     sheet.getRangeByName('A1').setText("Hello World");
-    sheet.getRangeByIndex(1, 3).setText("1,3");
+    sheet
+        .getRangeByIndex(int.parse(posn.text[0]), int.parse(posn.text[2]))
+        .setText("${data.text}");
 
     /// storing the bytes of the workbook
     final List<int> bytesOfExcelWorkbook = workbook.saveAsStream();
