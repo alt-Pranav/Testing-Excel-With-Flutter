@@ -33,7 +33,8 @@ dependencies:
     sdk: flutter
 
   # for saving as excel file
-  syncfusion_flutter_xlsio: ^19.1.64-beta
+  # syncfusion_flutter_xlsio: ^19.1.64-beta
+  excel: ^1.1.5
   # for accessing file path
   path_provider: ^2.0.1
   # for accessing excel file

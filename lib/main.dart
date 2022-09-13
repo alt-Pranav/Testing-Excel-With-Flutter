@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
 void main() {
   runApp(const MyApp());
@@ -56,6 +56,24 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController posn = TextEditingController();
   TextEditingController data = TextEditingController();
 
+  /// stores file path to save at
+  late String savePath;
+
+  /// stores file path + file name
+  late String filename;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    setPaths();
+  }
+
+  Future<void> setPaths() async {
+    savePath = (await getApplicationDocumentsDirectory()).path;
+    filename = '$savePath/output.xlsx';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,47 +106,47 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("Create Excel file"),
               onPressed: createExcel,
             ),
+            ElevatedButton(
+                onPressed: appendExcel, child: Text("Append to Excel file")),
           ],
         ),
       ),
     );
   }
 
-  Future<void> createExcel() async {
-    /// creates an Excel Workbook with 1 worksheet
-    final xlsio.Workbook workbook = xlsio.Workbook();
+  void createExcel() {
+    var excel = Excel.createExcel();
 
-    /// access the worksheet of the workbook to store data in
-    /// 0th index stores first worksheet
-    final xlsio.Worksheet sheet = workbook.worksheets[0];
-    sheet.getRangeByName('A1').setText("Hello World");
-    sheet
-        .getRangeByIndex(int.parse(posn.text[0]), int.parse(posn.text[2]))
-        .setText("${data.text}");
+    Sheet sheet1 = excel["Sheet_for_data"];
 
-    /// storing the bytes of the workbook
-    final List<int> bytesOfExcelWorkbook = workbook.saveAsStream();
+    var cell =
+        sheet1.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 1));
 
-    workbook.dispose();
+    cell.value = 24;
 
-    /// stores file path to save at
-    final String savePath = (await getApplicationSupportDirectory()).path;
-    final String docDir = (await getApplicationDocumentsDirectory()).path;
+    excel.encode().then((value) {
+      File(filename)
+        ..createSync(recursive: true)
+        ..writeAsBytes(value);
+    });
+  }
 
-    print(
-        savePath); // C:\Users\...\AppData\Roaming\com.example\excel_in_flutter
-    print(docDir); // C:\Users\...\OneDrive\Documents
+  void appendExcel() {
+    var bytes = File(filename).readAsBytesSync();
+    var excel = Excel.decodeBytes(bytes);
 
-    /// stores file path + file name
-    final String filename = '$savePath/output.xlsx';
-    final String docFileName = '$docDir/output.xlsx';
+    Sheet sheet1 = excel["Sheet_for_data"];
 
-    /// create the file here and write the bytes to it
-    File file = File(filename);
-    await file.writeAsBytes(bytesOfExcelWorkbook, flush: true);
+    var cell =
+        sheet1.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1));
 
-    file = File(docFileName);
-    await file.writeAsBytes(bytesOfExcelWorkbook, flush: true);
+    cell.value = "Appended!";
+
+    excel.encode().then((value) {
+      File(filename)
+        ..createSync(recursive: true)
+        ..writeAsBytes(value);
+    });
 
     OpenFile.open(filename);
   }
