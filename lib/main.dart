@@ -62,16 +62,19 @@ class _MyHomePageState extends State<MyHomePage> {
   /// stores file path + file name
   late String filename;
 
+  late int rowIndex;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     setPaths();
+    rowIndex = 1;
   }
 
   Future<void> setPaths() async {
     savePath = (await getApplicationDocumentsDirectory()).path;
-    filename = '$savePath/output.xlsx';
+    filename = '$savePath\\output.xlsx';
   }
 
   @override
@@ -107,7 +110,13 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: createExcel,
             ),
             ElevatedButton(
-                onPressed: appendExcel, child: Text("Append to Excel file")),
+              onPressed: appendExcel,
+              child: Text("Append to Excel file"),
+            ),
+            ElevatedButton(
+              onPressed: () => OpenFile.open(filename),
+              child: Text("Open file"),
+            ),
           ],
         ),
       ),
@@ -117,12 +126,15 @@ class _MyHomePageState extends State<MyHomePage> {
   void createExcel() {
     var excel = Excel.createExcel();
 
-    Sheet sheet1 = excel["Sheet_for_data"];
+    Sheet sheet1 = excel["Sheet1"];
 
-    var cell =
-        sheet1.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 1));
-
-    cell.value = 24;
+    int i = 0;
+    var values = ["Timestamp", "Temperature"];
+    for (int j = 0; j < 2; j++) {
+      var cell =
+          sheet1.cell(CellIndex.indexByColumnRow(columnIndex: j, rowIndex: i));
+      cell.value = values[j];
+    }
 
     excel.encode().then((value) {
       File(filename)
@@ -135,19 +147,25 @@ class _MyHomePageState extends State<MyHomePage> {
     var bytes = File(filename).readAsBytesSync();
     var excel = Excel.decodeBytes(bytes);
 
-    Sheet sheet1 = excel["Sheet_for_data"];
+    Sheet sheet1 = excel["Sheet1"];
 
-    var cell =
-        sheet1.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1));
+    CellStyle style = CellStyle(textWrapping: TextWrapping.WrapText);
 
-    cell.value = "Appended!";
+    for (int i = 2; i <= 10; i++) {
+      var cell =
+          sheet1.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: i));
+      cell.style = style;
+      cell.value = DateTime.now().toString();
+
+      cell =
+          sheet1.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i));
+      cell.value = (35 + i) % 50;
+    }
 
     excel.encode().then((value) {
       File(filename)
         ..createSync(recursive: true)
         ..writeAsBytes(value);
     });
-
-    OpenFile.open(filename);
   }
 }
