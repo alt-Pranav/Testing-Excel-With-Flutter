@@ -56,6 +56,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Excel with Flutter"),
+      ),
       body: Center(
         child: ElevatedButton(
           child: Text("Create Excel file"),
@@ -68,6 +71,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> createExcel() async {
     /// creates an Excel Workbook with 1 worksheet
     final Workbook workbook = Workbook();
+
+    /// access the worksheet of the workbook to store data in
+    /// 0th index stores first worksheet
+    final Worksheet sheet = workbook.worksheets[0];
+    sheet.getRangeByName('A1').setText("Hello World");
+    sheet.getRangeByIndex(1, 3).setText("1,3");
 
     /// storing the bytes of the workbook
     final List<int> bytesOfExcelWorkbook = workbook.saveAsStream();
